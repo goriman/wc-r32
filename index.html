@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>2026 W杯風 決勝トーナメント</title>
+  <title>2026 W杯 決勝トーナメント</title>
   <style>
     :root {
       color-scheme: light;
@@ -395,7 +395,7 @@
 </head>
 <body>
   <header>
-    <h1>2026 W杯風 決勝トーナメント</h1>
+    <h1>2026 W杯 決勝トーナメント</h1>
     <div class="toolbar" aria-label="操作">
       <button type="button" id="resetInitial">初期状態に戻す</button>
       <button type="button" id="clearAll">すべて未選択</button>
@@ -425,7 +425,7 @@
 
   <script>
     const rounds = [
-      { key: "r1", label: "1回戦" },
+      { key: "r1", label: "ベスト32" },
       { key: "r2", label: "ベスト16" },
       { key: "r3", label: "準々決勝" },
       { key: "r4", label: "準決勝" }
@@ -480,8 +480,8 @@
       { id: "L-r1-2", side: "left", round: "r1", sourceIds: ["L3", "L4"], initialWinnerId: "L3" },
       { id: "L-r1-3", side: "left", round: "r1", sourceIds: ["L5", "L6"], initialWinnerId: "L6" },
       { id: "L-r1-4", side: "left", round: "r1", sourceIds: ["L7", "L8"], initialWinnerId: "L8" },
-      { id: "L-r1-5", side: "left", round: "r1", sourceIds: ["L9", "L10"], initialWinnerId: null },
-      { id: "L-r1-6", side: "left", round: "r1", sourceIds: ["L11", "L12"], initialWinnerId: L11 },
+      { id: "L-r1-5", side: "left", round: "r1", sourceIds: ["L9", "L10"], initialWinnerId: "L9" },
+      { id: "L-r1-6", side: "left", round: "r1", sourceIds: ["L11", "L12"], initialWinnerId: "L11" },
       { id: "L-r1-7", side: "left", round: "r1", sourceIds: ["L13", "L14"], initialWinnerId: "L13" },
       { id: "L-r1-8", side: "left", round: "r1", sourceIds: ["L15", "L16"], initialWinnerId: "L15" },
       { id: "L-r2-1", side: "left", round: "r2", sourceMatchIds: ["L-r1-1", "L-r1-2"] },
