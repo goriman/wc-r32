@@ -441,6 +441,12 @@
       font-size: 13px;
     }
 
+    .combo-odds {
+      color: #475569;
+      font-weight: 900;
+      margin-left: 6px;
+    }
+
     @media (max-width: 1750px) {
       .bracket-shell {
         min-width: 1696px;
@@ -638,11 +644,123 @@
       { id: "FINAL", side: "center", round: "final", sourceMatchIds: ["L-r4-1", "R-r4-1"] }
     ];
 
+    const oddsBySlotPair = {
+      "1-1": null,
+      "1-2": 13100,
+      "1-3": 6900,
+      "1-4": 7800,
+      "1-5": 16800,
+      "1-6": 5600,
+      "1-7": 11800,
+      "1-8": 39300,
+      "1-9": 59000,
+      "1-10": 11800,
+      "2-2": null,
+      "2-3": 9800,
+      "2-4": 9800,
+      "2-5": 16800,
+      "2-6": 13100,
+      "2-7": 23600,
+      "2-8": 118000,
+      "2-9": 59000,
+      "2-10": 29500,
+      "3-3": 118000,
+      "3-4": 14700,
+      "3-5": 19600,
+      "3-6": 7800,
+      "3-7": 39300,
+      "3-8": 59000,
+      "3-9": 59000,
+      "3-10": 14700,
+      "4-4": 29500,
+      "4-5": 23600,
+      "4-6": 11800,
+      "4-7": 29600,
+      "4-8": 118000,
+      "4-9": 59000,
+      "4-10": 23600,
+      "5-5": 118000,
+      "5-6": 19600,
+      "5-7": 59000,
+      "5-8": 118000,
+      "5-9": 59000,
+      "5-10": 29500,
+      "6-6": 39300,
+      "6-7": 16800,
+      "6-8": 59000,
+      "6-9": 23600,
+      "6-10": 16800,
+      "7-7": 118000,
+      "7-8": 118000,
+      "7-9": 59000,
+      "7-10": 59000,
+      "8-8": null,
+      "8-9": 118000,
+      "8-10": 59000,
+      "9-9": null,
+      "9-10": 29500,
+      "10-10": 59000
+    };
+
     const matchById = new Map(matches.map((match) => [match.id, match]));
     const state = new Map(matches.map((match) => [match.id, match.initialWinnerId || null]));
+    const currentTournamentSlots = getCurrentTournamentSlots();
 
     function formatTeam(team) {
       return team ? `${team.name}（${team.slotNumber}）` : "未定";
+    }
+
+    function normalizeSlotPair(slotA, slotB) {
+      const first = Math.min(slotA, slotB);
+      const second = Math.max(slotA, slotB);
+      return `${first}-${second}`;
+    }
+
+    function formatOddsAmount(value) {
+      if (value === null) {
+        return "払戻";
+      }
+
+      if (value >= 1000) {
+        const shortened = value / 1000;
+        return `${Number.isInteger(shortened) ? shortened : shortened.toFixed(1).replace(/\.0$/, "")}k`;
+      }
+
+      return String(value);
+    }
+
+    function formatOddsValue(value) {
+      return value === null ? "払戻" : formatOddsAmount(value);
+    }
+
+    function getCurrentTournamentSlots() {
+      return new Set(
+        matches
+          .filter((match) => match.sourceIds)
+          .flatMap((match) => match.sourceIds)
+          .map((teamId) => teams[teamId].slotNumber)
+      );
+    }
+
+    function isCurrentTournamentSlot(slotNumber) {
+      return currentTournamentSlots.has(slotNumber);
+    }
+
+    function getOddsForSlotPair(slotA, slotB) {
+      if (!isCurrentTournamentSlot(slotA) || !isCurrentTournamentSlot(slotB)) {
+        return undefined;
+      }
+
+      return oddsBySlotPair[normalizeSlotPair(slotA, slotB)];
+    }
+
+    function formatSlotPairOddsLabel(slotA, slotB) {
+      const odds = getOddsForSlotPair(slotA, slotB);
+      if (odds === undefined) {
+        return "";
+      }
+
+      return formatOddsValue(odds);
     }
 
     function getSlots(match) {
@@ -863,13 +981,17 @@
     }
 
     function renderPossibilities() {
-      const leftIds = possibleWinners("L-r4-1");
-      const rightIds = possibleWinners("R-r4-1");
+      const leftIds = possibleWinners("L-r4-1")
+        .filter((teamId) => isCurrentTournamentSlot(teams[teamId].slotNumber));
+      const rightIds = possibleWinners("R-r4-1")
+        .filter((teamId) => isCurrentTournamentSlot(teams[teamId].slotNumber));
       const combos = new Set();
 
       for (const leftId of leftIds) {
         for (const rightId of rightIds) {
-          combos.add(`（${teams[leftId].slotNumber}）vs（${teams[rightId].slotNumber}）`);
+          const leftSlot = teams[leftId].slotNumber;
+          const rightSlot = teams[rightId].slotNumber;
+          combos.add(`${leftSlot}|${rightSlot}`);
         }
       }
 
@@ -879,8 +1001,19 @@
       [...combos]
         .sort((a, b) => a.localeCompare(b, "ja", { numeric: true }))
         .forEach((combo) => {
+          const [leftSlot, rightSlot] = combo.split("|").map(Number);
+          const oddsText = formatSlotPairOddsLabel(leftSlot, rightSlot);
           const item = document.createElement("li");
-          item.textContent = combo;
+          item.textContent = `（${leftSlot}）vs（${rightSlot}）`;
+
+          if (oddsText) {
+            const odds = document.createElement("span");
+            odds.className = "combo-odds";
+            odds.textContent = oddsText;
+            odds.title = `組み合わせオッズ: ${normalizeSlotPair(leftSlot, rightSlot)} ${oddsText}`;
+            item.append(odds);
+          }
+
           comboList.append(item);
         });
 
