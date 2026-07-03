@@ -1,0 +1,777 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>2026 W杯風 決勝トーナメント</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --panel-soft: #f8fafc;
+      --ink: #172033;
+      --muted: #687386;
+      --line: #b8c4d6;
+      --line-strong: #45688f;
+      --win: #0d7c66;
+      --win-bg: #e4f7f1;
+      --lose: #9aa5b5;
+      --accent: #be123c;
+      --accent-soft: #fff1f2;
+      --shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+      --radius: 8px;
+      --match-w: 156px;
+      --match-h: 76px;
+      --round-gap: 38px;
+      --round-top: 48px;
+      --row-h: 55px;
+      --side-h: 928px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 22px 28px 16px;
+      border-bottom: 1px solid #dbe3ee;
+      background: var(--panel);
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: 0;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    button {
+      min-height: 38px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      background: #ffffff;
+      color: var(--ink);
+      font: inherit;
+      font-weight: 700;
+      padding: 8px 14px;
+      cursor: pointer;
+    }
+
+    button:hover,
+    button:focus-visible {
+      border-color: var(--line-strong);
+      outline: 2px solid transparent;
+      background: #f8fafc;
+    }
+
+    main {
+      padding: 22px 28px 34px;
+      overflow-x: auto;
+    }
+
+    .bracket-shell {
+      display: grid;
+      grid-template-columns: 738px 220px 738px;
+      align-items: center;
+      gap: 16px;
+      margin: 0 auto;
+      width: max-content;
+    }
+
+    .side {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(4, var(--match-w));
+      column-gap: var(--round-gap);
+      min-height: var(--side-h);
+      padding-top: var(--round-top);
+    }
+
+    .round {
+      position: relative;
+      display: grid;
+      grid-template-rows: repeat(16, var(--row-h));
+      height: calc(var(--row-h) * 16);
+      min-width: 0;
+    }
+
+    .round-title {
+      position: absolute;
+      top: calc(var(--round-top) * -1 + 4px);
+      left: 0;
+      right: 0;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+      background: #edf2f7;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 4px 6px;
+    }
+
+    .match-box {
+      position: relative;
+      background: var(--panel);
+      border: 1px solid #d7e0ec;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 8px;
+      width: var(--match-w);
+      height: var(--match-h);
+      align-self: center;
+      z-index: 2;
+      transition: border-color 120ms ease, background 120ms ease, opacity 120ms ease;
+    }
+
+    .match-box.is-decided {
+      border-color: rgba(13, 124, 102, 0.55);
+      background: #ffffff;
+    }
+
+    .match-box.is-pending {
+      border-color: #d8e0eb;
+      background: #f1f5f9;
+      box-shadow: none;
+    }
+
+    .match-box.is-waiting {
+      border-style: dashed;
+      background: #f8fafc;
+      box-shadow: none;
+    }
+
+    .team-row {
+      display: grid;
+      grid-template-columns: 18px 1fr;
+      align-items: center;
+      gap: 5px;
+      height: 28px;
+      border-radius: 6px;
+      padding: 3px 5px;
+      color: var(--muted);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .team-row + .team-row {
+      margin-top: 5px;
+      border-top: 1px solid #edf2f7;
+      padding-top: 7px;
+    }
+
+    .team-row:hover {
+      background: var(--panel-soft);
+    }
+
+    .team-row.empty {
+      cursor: default;
+      color: #8a95a6;
+      background: #e9eef5;
+      font-style: italic;
+    }
+
+    .team-row.winner {
+      background: var(--win-bg);
+      color: #064e3b;
+      font-weight: 800;
+    }
+
+    .team-row.loser {
+      color: var(--lose);
+      opacity: 0.5;
+      text-decoration: line-through;
+    }
+
+    .team-row input {
+      width: 16px;
+      height: 16px;
+      margin: 0;
+      accent-color: var(--win);
+      cursor: pointer;
+    }
+
+    .team-row.empty input {
+      visibility: hidden;
+    }
+
+    .team-name {
+      overflow-wrap: anywhere;
+      font-size: 12px;
+      line-height: 1.25;
+    }
+
+    .connector-line {
+      position: absolute;
+      background: var(--line);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .connector-line.is-active {
+      background: var(--win);
+    }
+
+    .connector-line.horizontal {
+      height: 2px;
+    }
+
+    .connector-line.vertical {
+      width: 2px;
+    }
+
+    .left .connector-line.horizontal.from {
+      left: calc(var(--connector-col) * (var(--match-w) + var(--round-gap)) + var(--match-w));
+      width: calc(var(--round-gap) / 2);
+    }
+
+    .left .connector-line.horizontal.to {
+      left: calc((var(--connector-col) + 1) * (var(--match-w) + var(--round-gap)) - (var(--round-gap) / 2));
+      width: calc(var(--round-gap) / 2);
+    }
+
+    .left .connector-line.vertical {
+      left: calc((var(--connector-col) + 1) * (var(--match-w) + var(--round-gap)) - (var(--round-gap) / 2));
+    }
+
+    .right .connector-line.horizontal.from {
+      right: calc(var(--connector-col) * (var(--match-w) + var(--round-gap)) + var(--match-w));
+      width: calc(var(--round-gap) / 2);
+    }
+
+    .right .connector-line.horizontal.to {
+      right: calc((var(--connector-col) + 1) * (var(--match-w) + var(--round-gap)) - (var(--round-gap) / 2));
+      width: calc(var(--round-gap) / 2);
+    }
+
+    .right .connector-line.vertical {
+      right: calc((var(--connector-col) + 1) * (var(--match-w) + var(--round-gap)) - (var(--round-gap) / 2));
+    }
+
+    .final-zone {
+      align-self: stretch;
+      position: relative;
+      min-height: var(--side-h);
+    }
+
+    .final-label {
+      position: absolute;
+      top: 4px;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 5px 6px;
+      background: rgba(245, 247, 251, 0.9);
+    }
+
+    .final-card {
+      position: absolute;
+      top: 437px;
+      left: 0;
+      width: 100%;
+      background: var(--panel);
+      border: 2px solid var(--line-strong);
+      border-radius: var(--radius);
+      box-shadow: 0 14px 34px rgba(15, 23, 42, 0.12);
+      padding: 12px;
+    }
+
+    .final-card::before,
+    .final-card::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      width: 16px;
+      height: 2px;
+      background: var(--line-strong);
+    }
+
+    .final-card::before {
+      left: -18px;
+    }
+
+    .final-card::after {
+      right: -18px;
+    }
+
+    .champion {
+      position: absolute;
+      top: 570px;
+      left: 0;
+      width: 100%;
+      border: 1px solid #fecdd3;
+      background: var(--accent-soft);
+      border-radius: var(--radius);
+      padding: 12px;
+      text-align: center;
+    }
+
+    .champion-label {
+      display: block;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 900;
+      margin-bottom: 4px;
+    }
+
+    .champion-name {
+      display: block;
+      min-height: 24px;
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    .possibilities {
+      margin-top: 24px;
+      background: var(--panel);
+      border: 1px solid #d7e0ec;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+
+    .possibilities h2 {
+      margin: 0 0 10px;
+      font-size: 18px;
+    }
+
+    .possibility-meta {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .combo-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .combo-list li {
+      border: 1px solid #cbd5e1;
+      border-radius: 999px;
+      background: #f8fafc;
+      padding: 5px 10px;
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    @media (max-width: 1750px) {
+      .bracket-shell {
+        min-width: 1696px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>2026 W杯風 決勝トーナメント</h1>
+    <div class="toolbar" aria-label="操作">
+      <button type="button" id="resetInitial">初期状態に戻す</button>
+      <button type="button" id="clearAll">すべて未選択</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="bracket-shell" aria-label="決勝トーナメント表">
+      <div class="side left" id="leftBracket"></div>
+      <div class="final-zone">
+        <div class="final-label">決勝</div>
+        <div class="final-card" id="finalMatch"></div>
+        <div class="champion" aria-live="polite">
+          <span class="champion-label">優勝</span>
+          <span class="champion-name" id="championName">未定</span>
+        </div>
+      </div>
+      <div class="side right" id="rightBracket"></div>
+    </section>
+
+    <section class="possibilities" aria-labelledby="possibilityTitle">
+      <h2 id="possibilityTitle">決勝であり得る番号の組み合わせ</h2>
+      <p class="possibility-meta" id="possibilityMeta"></p>
+      <ul class="combo-list" id="comboList"></ul>
+    </section>
+  </main>
+
+  <script>
+    const rounds = [
+      { key: "r1", label: "1回戦" },
+      { key: "r2", label: "ベスト16" },
+      { key: "r3", label: "準々決勝" },
+      { key: "r4", label: "準決勝" }
+    ];
+
+    const rowSize = 55;
+    const sideTop = 48;
+    const roundLayout = {
+      r1: { starts: [1, 3, 5, 7, 9, 11, 13, 15], span: 2 },
+      r2: { starts: [2, 6, 10, 14], span: 2 },
+      r3: { starts: [4, 12], span: 2 },
+      r4: { starts: [8], span: 2 }
+    };
+
+    const teams = {
+      L1: { id: "L1", name: "ドイツ", slotNumber: 10 },
+      L2: { id: "L2", name: "パラグアイ", slotNumber: 9 },
+      L3: { id: "L3", name: "フランス", slotNumber: 1 },
+      L4: { id: "L4", name: "スウェーデン", slotNumber: 10 },
+      L5: { id: "L5", name: "南アフリカ", slotNumber: 1 },
+      L6: { id: "L6", name: "カナダ", slotNumber: 4 },
+      L7: { id: "L7", name: "オランダ", slotNumber: 7 },
+      L8: { id: "L8", name: "モロッコ", slotNumber: 8 },
+      L9: { id: "L9", name: "ポルトガル", slotNumber: 5 },
+      L10: { id: "L10", name: "クロアチア", slotNumber: 10 },
+      L11: { id: "L11", name: "スペイン", slotNumber: 2 },
+      L12: { id: "L12", name: "オーストリア", slotNumber: 9 },
+      L13: { id: "L13", name: "アメリカ", slotNumber: 6 },
+      L14: { id: "L14", name: "ボスニア", slotNumber: 8 },
+      L15: { id: "L15", name: "ベルギー", slotNumber: 9 },
+      L16: { id: "L16", name: "セネガル", slotNumber: 8 },
+      R1: { id: "R1", name: "ブラジル", slotNumber: 6 },
+      R2: { id: "R2", name: "日本", slotNumber: 4 },
+      R3: { id: "R3", name: "コートジボワール", slotNumber: 1 },
+      R4: { id: "R4", name: "ノルウェー", slotNumber: 3 },
+      R5: { id: "R5", name: "メキシコ", slotNumber: 7 },
+      R6: { id: "R6", name: "エクアドル", slotNumber: 10 },
+      R7: { id: "R7", name: "イングランド", slotNumber: 4 },
+      R8: { id: "R8", name: "DRコンゴ", slotNumber: 5 },
+      R9: { id: "R9", name: "アルゼンチン", slotNumber: 3 },
+      R10: { id: "R10", name: "カーボベルデ", slotNumber: 7 },
+      R11: { id: "R11", name: "オーストラリア", slotNumber: 7 },
+      R12: { id: "R12", name: "エジプト", slotNumber: 5 },
+      R13: { id: "R13", name: "スイス", slotNumber: 3 },
+      R14: { id: "R14", name: "アルジェリア", slotNumber: 6 },
+      R15: { id: "R15", name: "コロンビア", slotNumber: 9 },
+      R16: { id: "R16", name: "ガーナ", slotNumber: 6 }
+    };
+
+    const matches = [
+      { id: "L-r1-1", side: "left", round: "r1", sourceIds: ["L1", "L2"], initialWinnerId: "L2" },
+      { id: "L-r1-2", side: "left", round: "r1", sourceIds: ["L3", "L4"], initialWinnerId: "L3" },
+      { id: "L-r1-3", side: "left", round: "r1", sourceIds: ["L5", "L6"], initialWinnerId: "L6" },
+      { id: "L-r1-4", side: "left", round: "r1", sourceIds: ["L7", "L8"], initialWinnerId: "L8" },
+      { id: "L-r1-5", side: "left", round: "r1", sourceIds: ["L9", "L10"], initialWinnerId: null },
+      { id: "L-r1-6", side: "left", round: "r1", sourceIds: ["L11", "L12"], initialWinnerId: L11 },
+      { id: "L-r1-7", side: "left", round: "r1", sourceIds: ["L13", "L14"], initialWinnerId: "L13" },
+      { id: "L-r1-8", side: "left", round: "r1", sourceIds: ["L15", "L16"], initialWinnerId: "L15" },
+      { id: "L-r2-1", side: "left", round: "r2", sourceMatchIds: ["L-r1-1", "L-r1-2"] },
+      { id: "L-r2-2", side: "left", round: "r2", sourceMatchIds: ["L-r1-3", "L-r1-4"] },
+      { id: "L-r2-3", side: "left", round: "r2", sourceMatchIds: ["L-r1-5", "L-r1-6"] },
+      { id: "L-r2-4", side: "left", round: "r2", sourceMatchIds: ["L-r1-7", "L-r1-8"] },
+      { id: "L-r3-1", side: "left", round: "r3", sourceMatchIds: ["L-r2-1", "L-r2-2"] },
+      { id: "L-r3-2", side: "left", round: "r3", sourceMatchIds: ["L-r2-3", "L-r2-4"] },
+      { id: "L-r4-1", side: "left", round: "r4", sourceMatchIds: ["L-r3-1", "L-r3-2"] },
+
+      { id: "R-r1-1", side: "right", round: "r1", sourceIds: ["R1", "R2"], initialWinnerId: "R1" },
+      { id: "R-r1-2", side: "right", round: "r1", sourceIds: ["R3", "R4"], initialWinnerId: "R4" },
+      { id: "R-r1-3", side: "right", round: "r1", sourceIds: ["R5", "R6"], initialWinnerId: "R5" },
+      { id: "R-r1-4", side: "right", round: "r1", sourceIds: ["R7", "R8"], initialWinnerId: "R7" },
+      { id: "R-r1-5", side: "right", round: "r1", sourceIds: ["R9", "R10"], initialWinnerId: null },
+      { id: "R-r1-6", side: "right", round: "r1", sourceIds: ["R11", "R12"], initialWinnerId: null },
+      { id: "R-r1-7", side: "right", round: "r1", sourceIds: ["R13", "R14"], initialWinnerId: null },
+      { id: "R-r1-8", side: "right", round: "r1", sourceIds: ["R15", "R16"], initialWinnerId: null },
+      { id: "R-r2-1", side: "right", round: "r2", sourceMatchIds: ["R-r1-1", "R-r1-2"] },
+      { id: "R-r2-2", side: "right", round: "r2", sourceMatchIds: ["R-r1-3", "R-r1-4"] },
+      { id: "R-r2-3", side: "right", round: "r2", sourceMatchIds: ["R-r1-5", "R-r1-6"] },
+      { id: "R-r2-4", side: "right", round: "r2", sourceMatchIds: ["R-r1-7", "R-r1-8"] },
+      { id: "R-r3-1", side: "right", round: "r3", sourceMatchIds: ["R-r2-1", "R-r2-2"] },
+      { id: "R-r3-2", side: "right", round: "r3", sourceMatchIds: ["R-r2-3", "R-r2-4"] },
+      { id: "R-r4-1", side: "right", round: "r4", sourceMatchIds: ["R-r3-1", "R-r3-2"] },
+
+      { id: "FINAL", side: "center", round: "final", sourceMatchIds: ["L-r4-1", "R-r4-1"] }
+    ];
+
+    const matchById = new Map(matches.map((match) => [match.id, match]));
+    const state = new Map(matches.map((match) => [match.id, match.initialWinnerId || null]));
+
+    function formatTeam(team) {
+      return team ? `${team.name}（${team.slotNumber}）` : "未定";
+    }
+
+    function getSlots(match) {
+      if (match.sourceIds) {
+        return match.sourceIds.map((id) => teams[id]);
+      }
+
+      return match.sourceMatchIds.map((id) => {
+        const winnerId = state.get(id);
+        return winnerId ? teams[winnerId] : null;
+      });
+    }
+
+    function findDependentMatches(matchId) {
+      return matches.filter((match) => match.sourceMatchIds && match.sourceMatchIds.includes(matchId));
+    }
+
+    function clearInvalidDownstream(matchId) {
+      for (const dependent of findDependentMatches(matchId)) {
+        const slots = getSlots(dependent);
+        const selected = state.get(dependent.id);
+        const stillAvailable = selected && slots.some((team) => team && team.id === selected);
+
+        if (!stillAvailable && selected) {
+          state.set(dependent.id, null);
+        }
+
+        clearInvalidDownstream(dependent.id);
+      }
+    }
+
+    function setWinner(matchId, teamId) {
+      const current = state.get(matchId);
+      state.set(matchId, current === teamId ? null : teamId);
+      clearInvalidDownstream(matchId);
+      render();
+    }
+
+    function resetInitial() {
+      for (const match of matches) {
+        state.set(match.id, match.initialWinnerId || null);
+      }
+      render();
+    }
+
+    function clearAll() {
+      for (const match of matches) {
+        state.set(match.id, null);
+      }
+      render();
+    }
+
+    function gridRowFor(match) {
+      const roundMatches = matches.filter((item) => item.side === match.side && item.round === match.round);
+      const index = roundMatches.findIndex((item) => item.id === match.id);
+      const layout = roundLayout[match.round];
+      return `${layout.starts[index]} / span ${layout.span}`;
+    }
+
+    function centerY(match) {
+      const roundMatches = matches.filter((item) => item.side === match.side && item.round === match.round);
+      const index = roundMatches.findIndex((item) => item.id === match.id);
+      const layout = roundLayout[match.round];
+      return sideTop + ((layout.starts[index] - 1) * rowSize) + (layout.span * rowSize / 2);
+    }
+
+    function matchStatus(match, slots, winnerId) {
+      if (winnerId) {
+        return "is-decided";
+      }
+
+      if (slots.some((team) => !team)) {
+        return "is-waiting";
+      }
+
+      return "is-pending";
+    }
+
+    function renderMatch(match) {
+      const slots = getSlots(match);
+      const winnerId = state.get(match.id);
+      const article = document.createElement("article");
+      article.className = [
+        "match-box",
+        match.side === "left" ? "left-state" : match.side === "right" ? "right-state" : "center-state",
+        matchStatus(match, slots, winnerId)
+      ].join(" ");
+      article.dataset.matchId = match.id;
+      if (match.round !== "final") {
+        article.style.gridRow = gridRowFor(match);
+      }
+
+      slots.forEach((team) => {
+        const row = document.createElement("label");
+        const selected = team && winnerId === team.id;
+        const decidedLoser = team && winnerId && winnerId !== team.id;
+        row.className = [
+          "team-row",
+          team ? "" : "empty",
+          selected ? "winner" : "",
+          decidedLoser ? "loser" : ""
+        ].filter(Boolean).join(" ");
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = Boolean(selected);
+        checkbox.disabled = !team;
+        checkbox.setAttribute("aria-label", team ? `${formatTeam(team)} 勝利` : "未定");
+
+        checkbox.addEventListener("change", (event) => {
+          event.preventDefault();
+          if (team) {
+            setWinner(match.id, team.id);
+          }
+        });
+
+        const name = document.createElement("span");
+        name.className = "team-name";
+        name.textContent = formatTeam(team);
+
+        row.append(checkbox, name);
+        article.append(row);
+      });
+
+      return article;
+    }
+
+    function connectorElement(classes, col, top, height, active) {
+      const line = document.createElement("span");
+      line.className = [
+        "connector-line",
+        ...classes,
+        active ? "is-active" : ""
+      ].filter(Boolean).join(" ");
+      line.style.setProperty("--connector-col", col);
+      line.style.top = `${top}px`;
+      if (height) {
+        line.style.height = `${height}px`;
+      }
+      return line;
+    }
+
+    function renderConnectors(sideName, mount) {
+      const bridgeRounds = ["r1", "r2", "r3"];
+
+      bridgeRounds.forEach((roundKey, roundIndex) => {
+        const sourceMatches = matches.filter((match) => match.side === sideName && match.round === roundKey);
+        const targetRound = rounds[roundIndex + 1].key;
+        const targetMatches = matches.filter((match) => match.side === sideName && match.round === targetRound);
+
+        for (let index = 0; index < targetMatches.length; index += 1) {
+          const upper = sourceMatches[index * 2];
+          const lower = sourceMatches[index * 2 + 1];
+          const target = targetMatches[index];
+          const upperY = centerY(upper);
+          const lowerY = centerY(lower);
+          const targetY = centerY(target);
+          const upperActive = Boolean(state.get(upper.id));
+          const lowerActive = Boolean(state.get(lower.id));
+          const joinedActive = upperActive && lowerActive;
+
+          mount.append(connectorElement(["horizontal", "from"], roundIndex, upperY, 2, upperActive));
+          mount.append(connectorElement(["horizontal", "from"], roundIndex, lowerY, 2, lowerActive));
+          mount.append(connectorElement(["vertical"], roundIndex, upperY, lowerY - upperY, joinedActive));
+          mount.append(connectorElement(["horizontal", "to"], roundIndex, targetY, 2, joinedActive));
+        }
+      });
+    }
+
+    function renderSide(sideName, mountId) {
+      const mount = document.getElementById(mountId);
+      mount.innerHTML = "";
+      const visibleRounds = sideName === "right" ? [...rounds].reverse() : rounds;
+
+      visibleRounds.forEach((round) => {
+        const roundEl = document.createElement("section");
+        roundEl.className = "round";
+        roundEl.setAttribute("aria-label", round.label);
+
+        const title = document.createElement("div");
+        title.className = "round-title";
+        title.textContent = round.label;
+        roundEl.append(title);
+
+        matches
+          .filter((match) => match.side === sideName && match.round === round.key)
+          .forEach((match) => roundEl.append(renderMatch(match)));
+
+        mount.append(roundEl);
+      });
+
+      renderConnectors(sideName, mount);
+    }
+
+    function renderFinal() {
+      const finalMount = document.getElementById("finalMatch");
+      finalMount.innerHTML = "";
+      finalMount.append(renderMatch(matchById.get("FINAL")));
+
+      const championId = state.get("FINAL");
+      document.getElementById("championName").textContent = championId ? formatTeam(teams[championId]) : "未定";
+    }
+
+    function possibleWinners(matchId) {
+      const match = matchById.get(matchId);
+      const selected = state.get(matchId);
+
+      if (selected) {
+        return [selected];
+      }
+
+      if (match.sourceIds) {
+        return match.sourceIds;
+      }
+
+      const ids = match.sourceMatchIds.flatMap((id) => possibleWinners(id));
+      return [...new Set(ids)];
+    }
+
+    function renderPossibilities() {
+      const leftIds = possibleWinners("L-r4-1");
+      const rightIds = possibleWinners("R-r4-1");
+      const combos = new Set();
+
+      for (const leftId of leftIds) {
+        for (const rightId of rightIds) {
+          combos.add(`（${teams[leftId].slotNumber}）vs（${teams[rightId].slotNumber}）`);
+        }
+      }
+
+      const comboList = document.getElementById("comboList");
+      comboList.innerHTML = "";
+
+      [...combos]
+        .sort((a, b) => a.localeCompare(b, "ja", { numeric: true }))
+        .forEach((combo) => {
+          const item = document.createElement("li");
+          item.textContent = combo;
+          comboList.append(item);
+        });
+
+      document.getElementById("possibilityMeta").textContent =
+        `${combos.size}通り。未選択の試合は両チームの勝ち上がり可能性として計算しています。`;
+    }
+
+    function render() {
+      renderSide("left", "leftBracket");
+      renderSide("right", "rightBracket");
+      renderFinal();
+      renderPossibilities();
+    }
+
+    document.getElementById("resetInitial").addEventListener("click", resetInitial);
+    document.getElementById("clearAll").addEventListener("click", clearAll);
+
+    render();
+  </script>
+</body>
+</html>
