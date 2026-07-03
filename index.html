@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes">
   <title>⚽2026 W杯 決勝トーナメント</title>
   <style>
     :root {
@@ -88,7 +88,62 @@
 
     main {
       padding: 22px 28px 34px;
-      overflow-x: auto;
+      overflow-x: hidden;
+    }
+
+    .zoom-viewport {
+      position: relative;
+      overflow: hidden;
+      height: min(72vh, 980px);
+      min-height: 300px;
+      border: 1px solid #d7e0ec;
+      border-radius: var(--radius);
+      background: #eef3f9;
+      touch-action: none;
+      cursor: grab;
+      user-select: none;
+    }
+
+    .zoom-viewport.is-dragging {
+      cursor: grabbing;
+    }
+
+    .zoom-stage {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: max-content;
+      transform-origin: 0 0;
+      will-change: transform;
+    }
+
+    .zoom-controls {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px;
+      border: 1px solid #d7e0ec;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
+    }
+
+    .zoom-controls button {
+      min-width: 44px;
+      min-height: 44px;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .zoom-controls .fit-button {
+      min-width: 92px;
+      font-size: 14px;
     }
 
     .bracket-shell {
@@ -386,14 +441,6 @@
       font-size: 13px;
     }
 
-    .mobile-view {
-      display: none;
-    }
-
-    .mobile-edit-action {
-      display: none;
-    }
-
     @media (max-width: 1750px) {
       .bracket-shell {
         min-width: 1696px;
@@ -401,289 +448,31 @@
     }
 
     @media (max-width: 767px) {
-      body {
-        min-width: 0;
-      }
-
       header {
-        position: static;
-        display: block;
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 12px;
         padding: 16px;
       }
 
       h1 {
         font-size: 20px;
         line-height: 1.25;
-        margin-bottom: 12px;
       }
 
       .toolbar {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-        justify-content: stretch;
-        min-width: 0;
+        width: 100%;
+        justify-content: flex-start;
       }
 
       button {
-        min-width: 0;
         min-height: 44px;
         padding: 10px 12px;
         font-size: 14px;
-        width: 100%;
-        white-space: normal;
-      }
-
-      .mobile-edit-action {
-        display: block;
-        grid-column: 1 / -1;
-        background: #172033;
-        border-color: #172033;
-        color: #ffffff;
       }
 
       main {
         padding: 12px;
-        overflow-x: hidden;
-      }
-
-      .bracket-shell {
-        display: none;
-      }
-
-      .mobile-view {
-        display: block;
-      }
-
-      .mobile-overview {
-        display: grid;
-        gap: 14px;
-      }
-
-      .overview-section {
-        display: grid;
-        gap: 7px;
-        border-left: 3px solid #d8e0eb;
-        padding-left: 9px;
-      }
-
-      .overview-section.is-left {
-        border-left-color: rgba(13, 124, 102, 0.5);
-      }
-
-      .overview-section.is-right {
-        border-left-color: rgba(69, 104, 143, 0.5);
-      }
-
-      .overview-heading {
-        margin: 0;
-        color: var(--ink);
-        font-size: 14px;
-        font-weight: 900;
-      }
-
-      .overview-match-list {
-        display: grid;
-        gap: 6px;
-      }
-
-      .overview-match {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-        align-items: center;
-        gap: 6px;
-        min-height: 38px;
-        border: 1px solid #d7e0ec;
-        border-radius: 7px;
-        background: #ffffff;
-        padding: 5px;
-      }
-
-      .overview-match.is-waiting {
-        border-style: dashed;
-        background: #f8fafc;
-      }
-
-      .overview-match.is-pending {
-        background: #f1f5f9;
-      }
-
-      .overview-team {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 3px;
-        min-width: 0;
-        min-height: 28px;
-        border-radius: 5px;
-        color: var(--muted);
-        font-size: 13px;
-        font-weight: 800;
-      }
-
-      .overview-team.is-winner {
-        background: var(--win-bg);
-        color: #064e3b;
-        font-weight: 900;
-      }
-
-      .overview-team.is-loser {
-        color: var(--lose);
-        opacity: 0.55;
-        text-decoration: line-through;
-      }
-
-      .overview-team.is-empty {
-        border: 1px dashed #cbd5e1;
-        color: #8a95a6;
-        background: #edf2f7;
-      }
-
-      .overview-code {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-
-      .overview-slot {
-        color: inherit;
-        font-size: 10px;
-        font-weight: 800;
-        opacity: 0.8;
-      }
-
-      .overview-vs {
-        color: #8a95a6;
-        font-size: 11px;
-        font-weight: 900;
-      }
-
-      .overview-final {
-        display: grid;
-        gap: 8px;
-        border-left: 3px solid var(--line-strong);
-        padding-left: 9px;
-      }
-
-      .overview-champion {
-        border: 1px solid #fecdd3;
-        background: var(--accent-soft);
-        border-radius: 7px;
-        padding: 9px;
-        text-align: center;
-      }
-
-      .mobile-edit-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px;
-        margin-bottom: 10px;
-      }
-
-      .mobile-back-button {
-        width: auto;
-        min-height: 44px;
-        padding: 9px 12px;
-      }
-
-      .mobile-tabs {
-        display: flex;
-        gap: 8px;
-        margin: 0 -12px 12px;
-        padding: 0 12px 10px;
-        overflow-x: auto;
-        scrollbar-width: thin;
-        -webkit-overflow-scrolling: touch;
-      }
-
-      .mobile-tab {
-        flex: 0 0 auto;
-        width: auto;
-        min-height: 44px;
-        border: 1px solid #cbd5e1;
-        border-radius: 999px;
-        background: #ffffff;
-        color: var(--muted);
-        font-size: 14px;
-        font-weight: 800;
-        padding: 9px 14px;
-      }
-
-      .mobile-tab.is-active {
-        border-color: var(--line-strong);
-        background: #e8f0f8;
-        color: var(--ink);
-      }
-
-      .mobile-panel {
-        display: grid;
-        gap: 12px;
-      }
-
-      .mobile-round-heading {
-        margin: 4px 0 0;
-        color: var(--muted);
-        font-size: 13px;
-        font-weight: 900;
-      }
-
-      .mobile-card-list {
-        display: grid;
-        gap: 12px;
-      }
-
-      .mobile-card-list .match-box,
-      .mobile-final-card .match-box {
-        width: 100%;
-        height: auto;
-        min-height: 104px;
-        padding: 10px;
-        grid-row: auto !important;
-      }
-
-      .mobile-card-list .team-row,
-      .mobile-final-card .team-row {
-        grid-template-columns: 28px 1fr;
-        min-height: 44px;
-        height: auto;
-        padding: 8px;
-        gap: 8px;
-      }
-
-      .mobile-card-list .team-row + .team-row,
-      .mobile-final-card .team-row + .team-row {
-        margin-top: 8px;
-        padding-top: 8px;
-      }
-
-      .mobile-card-list .team-row input,
-      .mobile-final-card .team-row input {
-        width: 22px;
-        height: 22px;
-      }
-
-      .mobile-card-list .team-name,
-      .mobile-final-card .team-name {
-        font-size: 16px;
-        line-height: 1.35;
-      }
-
-      .mobile-final-card {
-        display: grid;
-        gap: 12px;
-      }
-
-      .mobile-champion {
-        border: 1px solid #fecdd3;
-        background: var(--accent-soft);
-        border-radius: var(--radius);
-        padding: 14px;
-        text-align: center;
-      }
-
-      .mobile-champion .champion-name {
-        font-size: 20px;
       }
 
       .possibilities {
@@ -709,6 +498,16 @@
         padding: 8px 12px;
         font-size: 15px;
       }
+
+      .zoom-viewport {
+        height: 58vh;
+        min-height: 260px;
+      }
+
+      .zoom-controls {
+        right: 12px;
+        bottom: 12px;
+      }
     }
   </style>
 </head>
@@ -716,27 +515,33 @@
   <header>
     <h1>2026 W杯 決勝トーナメント</h1>
     <div class="toolbar" aria-label="操作">
-      <button type="button" class="mobile-edit-action" id="enterEdit">編集する</button>
       <button type="button" id="resetInitial">初期状態に戻す</button>
       <button type="button" id="clearAll">すべて未選択</button>
     </div>
   </header>
 
   <main>
-    <section class="bracket-shell" aria-label="決勝トーナメント表">
-      <div class="side left" id="leftBracket"></div>
-      <div class="final-zone">
-        <div class="final-label">決勝</div>
-        <div class="final-card" id="finalMatch"></div>
-        <div class="champion" aria-live="polite">
-          <span class="champion-label">優勝</span>
-          <span class="champion-name" id="championName">未定</span>
-        </div>
+    <div class="zoom-viewport" id="zoomViewport" aria-label="ズーム可能な決勝トーナメント表">
+      <div class="zoom-stage" id="zoomStage">
+        <section class="bracket-shell" aria-label="決勝トーナメント表">
+          <div class="side left" id="leftBracket"></div>
+          <div class="final-zone">
+            <div class="final-label">決勝</div>
+            <div class="final-card" id="finalMatch"></div>
+            <div class="champion" aria-live="polite">
+              <span class="champion-label">優勝</span>
+              <span class="champion-name" id="championName">未定</span>
+            </div>
+          </div>
+          <div class="side right" id="rightBracket"></div>
+        </section>
       </div>
-      <div class="side right" id="rightBracket"></div>
-    </section>
-
-    <section class="mobile-view" id="mobileView" aria-label="ラウンド別カードビュー"></section>
+      <div class="zoom-controls" aria-label="ズーム操作">
+        <button type="button" id="zoomOut" aria-label="縮小">−</button>
+        <button type="button" id="zoomIn" aria-label="拡大">＋</button>
+        <button type="button" class="fit-button" id="zoomFit">全体表示</button>
+      </div>
+    </div>
 
     <section class="possibilities" aria-labelledby="possibilityTitle">
       <h2 id="possibilityTitle">決勝であり得る番号の組み合わせ</h2>
@@ -753,23 +558,6 @@
       { key: "r4", label: "準決勝" }
     ];
 
-    const mobileTabs = [
-      { key: "L-r1", label: "ベスト32(左)", side: "left", round: "r1" },
-      { key: "R-r1", label: "ベスト32(右)", side: "right", round: "r1" },
-      { key: "L-r2", label: "ベスト16(左)", side: "left", round: "r2" },
-      { key: "R-r2", label: "ベスト16(右)", side: "right", round: "r2" },
-      { key: "L-r3", label: "準々決勝(左)", side: "left", round: "r3" },
-      { key: "R-r3", label: "準々決勝(右)", side: "right", round: "r3" },
-      { key: "L-r4", label: "準決勝(左)", side: "left", round: "r4" },
-      { key: "R-r4", label: "準決勝(右)", side: "right", round: "r4" },
-      { key: "FINAL", label: "決勝", side: "center", round: "final" }
-    ];
-
-    const mobileQuery = window.matchMedia("(max-width: 767px)");
-    let mobileMode = "overview";
-    let mobileActiveTab = "L-r1";
-    let mobileTouchStartX = null;
-
     const rowSize = 55;
     const sideTop = 48;
     const roundLayout = {
@@ -780,38 +568,38 @@
     };
 
     const teams = {
-      L1: { id: "L1", name: "ドイツ", slotNumber: 10, code: "GER" },
-      L2: { id: "L2", name: "パラグアイ", slotNumber: 9, code: "PAR" },
-      L3: { id: "L3", name: "フランス", slotNumber: 1, code: "FRA" },
-      L4: { id: "L4", name: "スウェーデン", slotNumber: 10, code: "SWE" },
-      L5: { id: "L5", name: "南アフリカ", slotNumber: 1, code: "RSA" },
-      L6: { id: "L6", name: "カナダ", slotNumber: 4, code: "CAN" },
-      L7: { id: "L7", name: "オランダ", slotNumber: 7, code: "NED" },
-      L8: { id: "L8", name: "モロッコ", slotNumber: 8, code: "MAR" },
-      L9: { id: "L9", name: "ポルトガル", slotNumber: 5, code: "POR" },
-      L10: { id: "L10", name: "クロアチア", slotNumber: 10, code: "CRO" },
-      L11: { id: "L11", name: "スペイン", slotNumber: 2, code: "ESP" },
-      L12: { id: "L12", name: "オーストリア", slotNumber: 9, code: "AUT" },
-      L13: { id: "L13", name: "アメリカ", slotNumber: 6, code: "USA" },
-      L14: { id: "L14", name: "ボスニア", slotNumber: 8, code: "BIH" },
-      L15: { id: "L15", name: "ベルギー", slotNumber: 9, code: "BEL" },
-      L16: { id: "L16", name: "セネガル", slotNumber: 8, code: "SEN" },
-      R1: { id: "R1", name: "ブラジル", slotNumber: 6, code: "BRA" },
-      R2: { id: "R2", name: "日本", slotNumber: 4, code: "JPN" },
-      R3: { id: "R3", name: "コートジボワール", slotNumber: 1, code: "CIV" },
-      R4: { id: "R4", name: "ノルウェー", slotNumber: 3, code: "NOR" },
-      R5: { id: "R5", name: "メキシコ", slotNumber: 7, code: "MEX" },
-      R6: { id: "R6", name: "エクアドル", slotNumber: 10, code: "ECU" },
-      R7: { id: "R7", name: "イングランド", slotNumber: 4, code: "ENG" },
-      R8: { id: "R8", name: "DRコンゴ", slotNumber: 5, code: "COD" },
-      R9: { id: "R9", name: "アルゼンチン", slotNumber: 3, code: "ARG" },
-      R10: { id: "R10", name: "カーボベルデ", slotNumber: 7, code: "CPV" },
-      R11: { id: "R11", name: "オーストラリア", slotNumber: 7, code: "AUS" },
-      R12: { id: "R12", name: "エジプト", slotNumber: 5, code: "EGY" },
-      R13: { id: "R13", name: "スイス", slotNumber: 3, code: "SUI" },
-      R14: { id: "R14", name: "アルジェリア", slotNumber: 6, code: "ALG" },
-      R15: { id: "R15", name: "コロンビア", slotNumber: 9, code: "COL" },
-      R16: { id: "R16", name: "ガーナ", slotNumber: 6, code: "GHA" }
+      L1: { id: "L1", name: "ドイツ", slotNumber: 10 },
+      L2: { id: "L2", name: "パラグアイ", slotNumber: 9 },
+      L3: { id: "L3", name: "フランス", slotNumber: 1 },
+      L4: { id: "L4", name: "スウェーデン", slotNumber: 10 },
+      L5: { id: "L5", name: "南アフリカ", slotNumber: 1 },
+      L6: { id: "L6", name: "カナダ", slotNumber: 4 },
+      L7: { id: "L7", name: "オランダ", slotNumber: 7 },
+      L8: { id: "L8", name: "モロッコ", slotNumber: 8 },
+      L9: { id: "L9", name: "ポルトガル", slotNumber: 5 },
+      L10: { id: "L10", name: "クロアチア", slotNumber: 10 },
+      L11: { id: "L11", name: "スペイン", slotNumber: 2 },
+      L12: { id: "L12", name: "オーストリア", slotNumber: 9 },
+      L13: { id: "L13", name: "アメリカ", slotNumber: 6 },
+      L14: { id: "L14", name: "ボスニア", slotNumber: 8 },
+      L15: { id: "L15", name: "ベルギー", slotNumber: 9 },
+      L16: { id: "L16", name: "セネガル", slotNumber: 8 },
+      R1: { id: "R1", name: "ブラジル", slotNumber: 6 },
+      R2: { id: "R2", name: "日本", slotNumber: 4 },
+      R3: { id: "R3", name: "コートジボワール", slotNumber: 1 },
+      R4: { id: "R4", name: "ノルウェー", slotNumber: 3 },
+      R5: { id: "R5", name: "メキシコ", slotNumber: 7 },
+      R6: { id: "R6", name: "エクアドル", slotNumber: 10 },
+      R7: { id: "R7", name: "イングランド", slotNumber: 4 },
+      R8: { id: "R8", name: "DRコンゴ", slotNumber: 5 },
+      R9: { id: "R9", name: "アルゼンチン", slotNumber: 3 },
+      R10: { id: "R10", name: "カーボベルデ", slotNumber: 7 },
+      R11: { id: "R11", name: "オーストラリア", slotNumber: 7 },
+      R12: { id: "R12", name: "エジプト", slotNumber: 5 },
+      R13: { id: "R13", name: "スイス", slotNumber: 3 },
+      R14: { id: "R14", name: "アルジェリア", slotNumber: 6 },
+      R15: { id: "R15", name: "コロンビア", slotNumber: 9 },
+      R16: { id: "R16", name: "ガーナ", slotNumber: 6 }
     };
 
     const matches = [
@@ -855,10 +643,6 @@
 
     function formatTeam(team) {
       return team ? `${team.name}（${team.slotNumber}）` : "未定";
-    }
-
-    function formatTeamCompact(team) {
-      return team ? team.code : "-";
     }
 
     function getSlots(match) {
@@ -1062,261 +846,6 @@
       document.getElementById("championName").textContent = championId ? formatTeam(teams[championId]) : "未定";
     }
 
-    function enterMobileEdit(tabKey = "L-r1") {
-      mobileMode = "edit";
-      mobileActiveTab = tabKey;
-      render();
-    }
-
-    function renderOverviewTeam(team, winnerId) {
-      const teamEl = document.createElement("span");
-      const isWinner = team && winnerId === team.id;
-      const isLoser = team && winnerId && winnerId !== team.id;
-      teamEl.className = [
-        "overview-team",
-        team ? "" : "is-empty",
-        isWinner ? "is-winner" : "",
-        isLoser ? "is-loser" : ""
-      ].filter(Boolean).join(" ");
-
-      const code = document.createElement("span");
-      code.className = "overview-code";
-      code.textContent = formatTeamCompact(team);
-
-      const slot = document.createElement("span");
-      slot.className = "overview-slot";
-      slot.textContent = team ? `(${team.slotNumber})` : "";
-
-      teamEl.append(code, slot);
-      return teamEl;
-    }
-
-    function renderOverviewMatch(match) {
-      const slots = getSlots(match);
-      const winnerId = state.get(match.id);
-      const card = document.createElement("button");
-      card.type = "button";
-      card.className = [
-        "overview-match",
-        matchStatus(match, slots, winnerId)
-      ].join(" ");
-      card.setAttribute("aria-label", `${match.id} を編集`);
-      card.addEventListener("click", () => {
-        const tabKey = match.id === "FINAL" ? "FINAL" : `${match.side === "left" ? "L" : "R"}-${match.round}`;
-        enterMobileEdit(tabKey);
-      });
-
-      const vs = document.createElement("span");
-      vs.className = "overview-vs";
-      vs.textContent = "vs";
-
-      card.append(renderOverviewTeam(slots[0], winnerId), vs, renderOverviewTeam(slots[1], winnerId));
-      return card;
-    }
-
-    function renderOverviewSection(mount, sideName, roundKey) {
-      const round = rounds.find((item) => item.key === roundKey);
-      const sideLabel = sideName === "left" ? "左" : "右";
-      const section = document.createElement("section");
-      section.className = `overview-section is-${sideName}`;
-
-      const heading = document.createElement("h2");
-      heading.className = "overview-heading";
-      heading.textContent = `${round.label}（${sideLabel}）`;
-
-      const list = document.createElement("div");
-      list.className = "overview-match-list";
-
-      matches
-        .filter((match) => match.side === sideName && match.round === roundKey)
-        .forEach((match) => list.append(renderOverviewMatch(match)));
-
-      section.append(heading, list);
-      mount.append(section);
-    }
-
-    function renderOverviewFinal(mount) {
-      const section = document.createElement("section");
-      section.className = "overview-final";
-
-      const heading = document.createElement("h2");
-      heading.className = "overview-heading";
-      heading.textContent = "決勝";
-
-      const champion = document.createElement("div");
-      champion.className = "overview-champion";
-
-      const label = document.createElement("span");
-      label.className = "champion-label";
-      label.textContent = "優勝";
-
-      const name = document.createElement("span");
-      name.className = "champion-name";
-      const championId = state.get("FINAL");
-      name.textContent = championId ? formatTeamCompact(teams[championId]) : "未定";
-
-      champion.append(label, name);
-      section.append(heading, renderOverviewMatch(matchById.get("FINAL")), champion);
-      mount.append(section);
-    }
-
-    function renderMobileOverview() {
-      document.getElementById("leftBracket").innerHTML = "";
-      document.getElementById("rightBracket").innerHTML = "";
-      document.getElementById("finalMatch").innerHTML = "";
-      document.querySelector(".possibilities").hidden = true;
-
-      const mount = document.getElementById("mobileView");
-      mount.innerHTML = "";
-
-      const overview = document.createElement("div");
-      overview.className = "mobile-overview";
-
-      renderOverviewSection(overview, "left", "r1");
-      renderOverviewSection(overview, "left", "r2");
-      renderOverviewSection(overview, "left", "r3");
-      renderOverviewSection(overview, "left", "r4");
-      renderOverviewFinal(overview);
-      renderOverviewSection(overview, "right", "r4");
-      renderOverviewSection(overview, "right", "r3");
-      renderOverviewSection(overview, "right", "r2");
-      renderOverviewSection(overview, "right", "r1");
-
-      mount.append(overview);
-    }
-
-    function renderMobileTabs(mount) {
-      const tabs = document.createElement("div");
-      tabs.className = "mobile-tabs";
-      tabs.setAttribute("role", "tablist");
-      tabs.setAttribute("aria-label", "ラウンド切り替え");
-
-      mobileTabs.forEach((tab) => {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = `mobile-tab${tab.key === mobileActiveTab ? " is-active" : ""}`;
-        button.textContent = tab.label;
-        button.setAttribute("role", "tab");
-        button.setAttribute("aria-selected", tab.key === mobileActiveTab ? "true" : "false");
-        button.addEventListener("click", () => {
-          mobileActiveTab = tab.key;
-          render();
-        });
-        tabs.append(button);
-      });
-
-      mount.append(tabs);
-      tabs.querySelector(".mobile-tab.is-active")?.scrollIntoView({ inline: "center", block: "nearest" });
-    }
-
-    function renderMobileFinal(panel) {
-      const finalCard = document.createElement("div");
-      finalCard.className = "mobile-final-card";
-      finalCard.append(renderMatch(matchById.get("FINAL")));
-
-      const champion = document.createElement("div");
-      champion.className = "mobile-champion";
-
-      const label = document.createElement("span");
-      label.className = "champion-label";
-      label.textContent = "優勝";
-
-      const name = document.createElement("span");
-      name.className = "champion-name";
-      const championId = state.get("FINAL");
-      name.textContent = championId ? formatTeam(teams[championId]) : "未定";
-
-      champion.append(label, name);
-      finalCard.append(champion);
-      panel.append(finalCard);
-    }
-
-    function renderMobileMatches(panel, activeTab) {
-      const heading = document.createElement("div");
-      heading.className = "mobile-round-heading";
-      heading.textContent = activeTab.label;
-
-      const list = document.createElement("div");
-      list.className = "mobile-card-list";
-
-      matches
-        .filter((match) => match.side === activeTab.side && match.round === activeTab.round)
-        .forEach((match) => list.append(renderMatch(match)));
-
-      panel.append(heading, list);
-    }
-
-    function moveMobileTab(direction) {
-      const currentIndex = mobileTabs.findIndex((tab) => tab.key === mobileActiveTab);
-      const nextIndex = Math.min(Math.max(currentIndex + direction, 0), mobileTabs.length - 1);
-      if (nextIndex !== currentIndex) {
-        mobileActiveTab = mobileTabs[nextIndex].key;
-        render();
-      }
-    }
-
-    function bindMobileSwipe(panel) {
-      panel.addEventListener("touchstart", (event) => {
-        mobileTouchStartX = event.touches[0].clientX;
-      }, { passive: true });
-
-      panel.addEventListener("touchend", (event) => {
-        if (mobileTouchStartX === null) {
-          return;
-        }
-
-        const diff = event.changedTouches[0].clientX - mobileTouchStartX;
-        mobileTouchStartX = null;
-
-        if (Math.abs(diff) < 45) {
-          return;
-        }
-
-        moveMobileTab(diff < 0 ? 1 : -1);
-      }, { passive: true });
-    }
-
-    function renderMobileView() {
-      document.getElementById("leftBracket").innerHTML = "";
-      document.getElementById("rightBracket").innerHTML = "";
-      document.getElementById("finalMatch").innerHTML = "";
-      document.querySelector(".possibilities").hidden = false;
-
-      const mount = document.getElementById("mobileView");
-      mount.innerHTML = "";
-      const activeTab = mobileTabs.find((tab) => tab.key === mobileActiveTab) || mobileTabs[0];
-      mobileActiveTab = activeTab.key;
-
-      const editHeader = document.createElement("div");
-      editHeader.className = "mobile-edit-header";
-
-      const backButton = document.createElement("button");
-      backButton.type = "button";
-      backButton.className = "mobile-back-button";
-      backButton.textContent = "← 全体図に戻る";
-      backButton.addEventListener("click", () => {
-        mobileMode = "overview";
-        render();
-      });
-
-      editHeader.append(backButton);
-      mount.append(editHeader);
-      renderMobileTabs(mount);
-
-      const panel = document.createElement("div");
-      panel.className = "mobile-panel";
-
-      if (activeTab.key === "FINAL") {
-        renderMobileFinal(panel);
-      } else {
-        renderMobileMatches(panel, activeTab);
-      }
-
-      bindMobileSwipe(panel);
-      mount.append(panel);
-      renderPossibilities();
-    }
-
     function possibleWinners(matchId) {
       const match = matchById.get(matchId);
       const selected = state.get(matchId);
@@ -1359,34 +888,238 @@
         `${combos.size}通り。未選択の試合は両チームの勝ち上がり可能性として計算しています。`;
     }
 
-    function render() {
-      if (mobileQuery.matches) {
-        if (mobileMode === "overview") {
-          renderMobileOverview();
-        } else {
-          renderMobileView();
-        }
-        return;
+    const zoom = {
+      scale: 1,
+      x: 0,
+      y: 0,
+      min: 0.15,
+      max: 2,
+      fitScale: 1,
+      dragging: false,
+      dragStartX: 0,
+      dragStartY: 0,
+      startX: 0,
+      startY: 0,
+      pinchStartDistance: 0,
+      pinchStartScale: 1,
+      pinchCenter: null,
+      lastTapTime: 0,
+      lastTapX: 0,
+      lastTapY: 0
+    };
+
+    const zoomViewport = document.getElementById("zoomViewport");
+    const zoomStage = document.getElementById("zoomStage");
+
+    function isInteractiveTarget(target) {
+      return Boolean(target.closest("input, label, button, .zoom-controls"));
+    }
+
+    function clamp(value, min, max) {
+      return Math.min(Math.max(value, min), max);
+    }
+
+    function clampZoomPosition() {
+      const shell = document.querySelector(".bracket-shell");
+      const viewportRect = zoomViewport.getBoundingClientRect();
+      const contentWidth = shell.offsetWidth * zoom.scale;
+      const contentHeight = shell.offsetHeight * zoom.scale;
+      const margin = 80;
+
+      if (contentWidth <= viewportRect.width) {
+        zoom.x = (viewportRect.width - contentWidth) / 2;
+      } else {
+        zoom.x = clamp(zoom.x, viewportRect.width - contentWidth + margin, margin);
       }
 
-      document.getElementById("mobileView").innerHTML = "";
-      document.querySelector(".possibilities").hidden = false;
+      if (contentHeight <= viewportRect.height) {
+        zoom.y = (viewportRect.height - contentHeight) / 2;
+      } else {
+        zoom.y = clamp(zoom.y, viewportRect.height - contentHeight + margin, margin);
+      }
+    }
+
+    function applyZoom() {
+      clampZoomPosition();
+      zoomStage.style.transform = `translate(${zoom.x}px, ${zoom.y}px) scale(${zoom.scale})`;
+    }
+
+    function setZoomAt(nextScale, clientX, clientY) {
+      const viewportRect = zoomViewport.getBoundingClientRect();
+      const focalX = clientX - viewportRect.left;
+      const focalY = clientY - viewportRect.top;
+      const stageX = (focalX - zoom.x) / zoom.scale;
+      const stageY = (focalY - zoom.y) / zoom.scale;
+
+      zoom.scale = clamp(nextScale, zoom.min, zoom.max);
+      zoom.x = focalX - stageX * zoom.scale;
+      zoom.y = focalY - stageY * zoom.scale;
+      applyZoom();
+    }
+
+    function resetZoomToFit() {
+      const shell = document.querySelector(".bracket-shell");
+      const viewportRect = zoomViewport.getBoundingClientRect();
+      const scaleX = viewportRect.width / shell.offsetWidth;
+      const scaleY = viewportRect.height / shell.offsetHeight;
+      zoom.fitScale = clamp(Math.min(1, scaleX, scaleY) * 0.96, zoom.min, zoom.max);
+      zoom.scale = zoom.fitScale;
+      zoom.x = (viewportRect.width - shell.offsetWidth * zoom.scale) / 2;
+      zoom.y = (viewportRect.height - shell.offsetHeight * zoom.scale) / 2;
+      applyZoom();
+    }
+
+    function distanceBetweenTouches(touches) {
+      const dx = touches[0].clientX - touches[1].clientX;
+      const dy = touches[0].clientY - touches[1].clientY;
+      return Math.hypot(dx, dy);
+    }
+
+    function centerBetweenTouches(touches) {
+      return {
+        x: (touches[0].clientX + touches[1].clientX) / 2,
+        y: (touches[0].clientY + touches[1].clientY) / 2
+      };
+    }
+
+    function toggleDoubleTapZoom(clientX, clientY) {
+      const targetScale = zoom.scale < 0.85 ? 1 : zoom.fitScale;
+      setZoomAt(targetScale, clientX, clientY);
+    }
+
+    function initZoomViewer() {
+      resetZoomToFit();
+
+      zoomViewport.addEventListener("touchstart", (event) => {
+        if (isInteractiveTarget(event.target)) {
+          return;
+        }
+
+        if (event.touches.length === 1) {
+          zoom.dragging = true;
+          zoomViewport.classList.add("is-dragging");
+          zoom.dragStartX = event.touches[0].clientX;
+          zoom.dragStartY = event.touches[0].clientY;
+          zoom.startX = zoom.x;
+          zoom.startY = zoom.y;
+        } else if (event.touches.length === 2) {
+          zoom.dragging = false;
+          zoom.pinchStartDistance = distanceBetweenTouches(event.touches);
+          zoom.pinchStartScale = zoom.scale;
+          zoom.pinchCenter = centerBetweenTouches(event.touches);
+        }
+      }, { passive: false });
+
+      zoomViewport.addEventListener("touchmove", (event) => {
+        if (isInteractiveTarget(event.target)) {
+          return;
+        }
+
+        event.preventDefault();
+
+        if (event.touches.length === 1 && zoom.dragging) {
+          zoom.x = zoom.startX + event.touches[0].clientX - zoom.dragStartX;
+          zoom.y = zoom.startY + event.touches[0].clientY - zoom.dragStartY;
+          applyZoom();
+        } else if (event.touches.length === 2) {
+          const center = centerBetweenTouches(event.touches);
+          const ratio = distanceBetweenTouches(event.touches) / zoom.pinchStartDistance;
+          setZoomAt(zoom.pinchStartScale * ratio, center.x, center.y);
+        }
+      }, { passive: false });
+
+      zoomViewport.addEventListener("touchend", (event) => {
+        if (isInteractiveTarget(event.target)) {
+          return;
+        }
+
+        zoomViewport.classList.remove("is-dragging");
+
+        if (event.changedTouches.length === 1) {
+          const touch = event.changedTouches[0];
+          const now = Date.now();
+          const moved = Math.hypot(touch.clientX - zoom.dragStartX, touch.clientY - zoom.dragStartY);
+          const nearLastTap = Math.hypot(touch.clientX - zoom.lastTapX, touch.clientY - zoom.lastTapY) < 28;
+
+          if (moved < 10 && now - zoom.lastTapTime < 320 && nearLastTap) {
+            toggleDoubleTapZoom(touch.clientX, touch.clientY);
+            zoom.lastTapTime = 0;
+          } else if (moved < 10) {
+            zoom.lastTapTime = now;
+            zoom.lastTapX = touch.clientX;
+            zoom.lastTapY = touch.clientY;
+          }
+        }
+
+        zoom.dragging = false;
+      }, { passive: true });
+
+      zoomViewport.addEventListener("wheel", (event) => {
+        event.preventDefault();
+        const factor = event.deltaY < 0 ? 1.12 : 0.88;
+        setZoomAt(zoom.scale * factor, event.clientX, event.clientY);
+      }, { passive: false });
+
+      zoomViewport.addEventListener("mousedown", (event) => {
+        if (event.button !== 0 || isInteractiveTarget(event.target)) {
+          return;
+        }
+
+        zoom.dragging = true;
+        zoomViewport.classList.add("is-dragging");
+        zoom.dragStartX = event.clientX;
+        zoom.dragStartY = event.clientY;
+        zoom.startX = zoom.x;
+        zoom.startY = zoom.y;
+      });
+
+      window.addEventListener("mousemove", (event) => {
+        if (!zoom.dragging) {
+          return;
+        }
+
+        zoom.x = zoom.startX + event.clientX - zoom.dragStartX;
+        zoom.y = zoom.startY + event.clientY - zoom.dragStartY;
+        applyZoom();
+      });
+
+      window.addEventListener("mouseup", () => {
+        zoom.dragging = false;
+        zoomViewport.classList.remove("is-dragging");
+      });
+
+      zoomViewport.addEventListener("dblclick", (event) => {
+        if (!isInteractiveTarget(event.target)) {
+          toggleDoubleTapZoom(event.clientX, event.clientY);
+        }
+      });
+
+      document.getElementById("zoomIn").addEventListener("click", () => {
+        const rect = zoomViewport.getBoundingClientRect();
+        setZoomAt(zoom.scale * 1.2, rect.left + rect.width / 2, rect.top + rect.height / 2);
+      });
+
+      document.getElementById("zoomOut").addEventListener("click", () => {
+        const rect = zoomViewport.getBoundingClientRect();
+        setZoomAt(zoom.scale / 1.2, rect.left + rect.width / 2, rect.top + rect.height / 2);
+      });
+
+      document.getElementById("zoomFit").addEventListener("click", resetZoomToFit);
+      window.addEventListener("resize", resetZoomToFit);
+    }
+
+    function render() {
       renderSide("left", "leftBracket");
       renderSide("right", "rightBracket");
       renderFinal();
       renderPossibilities();
     }
 
-    document.getElementById("enterEdit").addEventListener("click", () => enterMobileEdit("L-r1"));
     document.getElementById("resetInitial").addEventListener("click", resetInitial);
     document.getElementById("clearAll").addEventListener("click", clearAll);
-    mobileQuery.addEventListener("change", () => {
-      mobileMode = "overview";
-      mobileActiveTab = "L-r1";
-      render();
-    });
 
     render();
+    initZoomViewer();
   </script>
 </body>
 </html>
