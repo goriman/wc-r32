@@ -386,9 +386,184 @@
       font-size: 13px;
     }
 
+    .mobile-view {
+      display: none;
+    }
+
     @media (max-width: 1750px) {
       .bracket-shell {
         min-width: 1696px;
+      }
+    }
+
+    @media (max-width: 767px) {
+      body {
+        min-width: 0;
+      }
+
+      header {
+        position: static;
+        display: block;
+        padding: 16px;
+      }
+
+      h1 {
+        font-size: 20px;
+        line-height: 1.25;
+        margin-bottom: 12px;
+      }
+
+      .toolbar {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        justify-content: stretch;
+        min-width: 0;
+      }
+
+      button {
+        min-width: 0;
+        min-height: 44px;
+        padding: 10px 12px;
+        font-size: 14px;
+        width: 100%;
+        white-space: normal;
+      }
+
+      main {
+        padding: 12px;
+        overflow-x: hidden;
+      }
+
+      .bracket-shell {
+        display: none;
+      }
+
+      .mobile-view {
+        display: block;
+      }
+
+      .mobile-tabs {
+        display: flex;
+        gap: 8px;
+        margin: 0 -12px 12px;
+        padding: 0 12px 10px;
+        overflow-x: auto;
+        scrollbar-width: thin;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .mobile-tab {
+        flex: 0 0 auto;
+        width: auto;
+        min-height: 44px;
+        border: 1px solid #cbd5e1;
+        border-radius: 999px;
+        background: #ffffff;
+        color: var(--muted);
+        font-size: 14px;
+        font-weight: 800;
+        padding: 9px 14px;
+      }
+
+      .mobile-tab.is-active {
+        border-color: var(--line-strong);
+        background: #e8f0f8;
+        color: var(--ink);
+      }
+
+      .mobile-panel {
+        display: grid;
+        gap: 12px;
+      }
+
+      .mobile-round-heading {
+        margin: 4px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 900;
+      }
+
+      .mobile-card-list {
+        display: grid;
+        gap: 12px;
+      }
+
+      .mobile-card-list .match-box,
+      .mobile-final-card .match-box {
+        width: 100%;
+        height: auto;
+        min-height: 104px;
+        padding: 10px;
+        grid-row: auto !important;
+      }
+
+      .mobile-card-list .team-row,
+      .mobile-final-card .team-row {
+        grid-template-columns: 28px 1fr;
+        min-height: 44px;
+        height: auto;
+        padding: 8px;
+        gap: 8px;
+      }
+
+      .mobile-card-list .team-row + .team-row,
+      .mobile-final-card .team-row + .team-row {
+        margin-top: 8px;
+        padding-top: 8px;
+      }
+
+      .mobile-card-list .team-row input,
+      .mobile-final-card .team-row input {
+        width: 22px;
+        height: 22px;
+      }
+
+      .mobile-card-list .team-name,
+      .mobile-final-card .team-name {
+        font-size: 16px;
+        line-height: 1.35;
+      }
+
+      .mobile-final-card {
+        display: grid;
+        gap: 12px;
+      }
+
+      .mobile-champion {
+        border: 1px solid #fecdd3;
+        background: var(--accent-soft);
+        border-radius: var(--radius);
+        padding: 14px;
+        text-align: center;
+      }
+
+      .mobile-champion .champion-name {
+        font-size: 20px;
+      }
+
+      .possibilities {
+        margin-top: 16px;
+        padding: 14px;
+      }
+
+      .possibilities h2 {
+        font-size: 17px;
+      }
+
+      .combo-list {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      .combo-list li {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-size: 15px;
       }
     }
   </style>
@@ -416,6 +591,8 @@
       <div class="side right" id="rightBracket"></div>
     </section>
 
+    <section class="mobile-view" id="mobileView" aria-label="ラウンド別カードビュー"></section>
+
     <section class="possibilities" aria-labelledby="possibilityTitle">
       <h2 id="possibilityTitle">決勝であり得る番号の組み合わせ</h2>
       <p class="possibility-meta" id="possibilityMeta"></p>
@@ -430,6 +607,22 @@
       { key: "r3", label: "準々決勝" },
       { key: "r4", label: "準決勝" }
     ];
+
+    const mobileTabs = [
+      { key: "L-r1", label: "ベスト32(左)", side: "left", round: "r1" },
+      { key: "R-r1", label: "ベスト32(右)", side: "right", round: "r1" },
+      { key: "L-r2", label: "ベスト16(左)", side: "left", round: "r2" },
+      { key: "R-r2", label: "ベスト16(右)", side: "right", round: "r2" },
+      { key: "L-r3", label: "準々決勝(左)", side: "left", round: "r3" },
+      { key: "R-r3", label: "準々決勝(右)", side: "right", round: "r3" },
+      { key: "L-r4", label: "準決勝(左)", side: "left", round: "r4" },
+      { key: "R-r4", label: "準決勝(右)", side: "right", round: "r4" },
+      { key: "FINAL", label: "決勝", side: "center", round: "final" }
+    ];
+
+    const mobileQuery = window.matchMedia("(max-width: 767px)");
+    let mobileActiveTab = "L-r1";
+    let mobileTouchStartX = null;
 
     const rowSize = 55;
     const sideTop = 48;
@@ -719,6 +912,123 @@
       document.getElementById("championName").textContent = championId ? formatTeam(teams[championId]) : "未定";
     }
 
+    function renderMobileTabs(mount) {
+      const tabs = document.createElement("div");
+      tabs.className = "mobile-tabs";
+      tabs.setAttribute("role", "tablist");
+      tabs.setAttribute("aria-label", "ラウンド切り替え");
+
+      mobileTabs.forEach((tab) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `mobile-tab${tab.key === mobileActiveTab ? " is-active" : ""}`;
+        button.textContent = tab.label;
+        button.setAttribute("role", "tab");
+        button.setAttribute("aria-selected", tab.key === mobileActiveTab ? "true" : "false");
+        button.addEventListener("click", () => {
+          mobileActiveTab = tab.key;
+          render();
+        });
+        tabs.append(button);
+      });
+
+      mount.append(tabs);
+      tabs.querySelector(".mobile-tab.is-active")?.scrollIntoView({ inline: "center", block: "nearest" });
+    }
+
+    function renderMobileFinal(panel) {
+      const finalCard = document.createElement("div");
+      finalCard.className = "mobile-final-card";
+      finalCard.append(renderMatch(matchById.get("FINAL")));
+
+      const champion = document.createElement("div");
+      champion.className = "mobile-champion";
+
+      const label = document.createElement("span");
+      label.className = "champion-label";
+      label.textContent = "優勝";
+
+      const name = document.createElement("span");
+      name.className = "champion-name";
+      const championId = state.get("FINAL");
+      name.textContent = championId ? formatTeam(teams[championId]) : "未定";
+
+      champion.append(label, name);
+      finalCard.append(champion);
+      panel.append(finalCard);
+    }
+
+    function renderMobileMatches(panel, activeTab) {
+      const heading = document.createElement("div");
+      heading.className = "mobile-round-heading";
+      heading.textContent = activeTab.label;
+
+      const list = document.createElement("div");
+      list.className = "mobile-card-list";
+
+      matches
+        .filter((match) => match.side === activeTab.side && match.round === activeTab.round)
+        .forEach((match) => list.append(renderMatch(match)));
+
+      panel.append(heading, list);
+    }
+
+    function moveMobileTab(direction) {
+      const currentIndex = mobileTabs.findIndex((tab) => tab.key === mobileActiveTab);
+      const nextIndex = Math.min(Math.max(currentIndex + direction, 0), mobileTabs.length - 1);
+      if (nextIndex !== currentIndex) {
+        mobileActiveTab = mobileTabs[nextIndex].key;
+        render();
+      }
+    }
+
+    function bindMobileSwipe(panel) {
+      panel.addEventListener("touchstart", (event) => {
+        mobileTouchStartX = event.touches[0].clientX;
+      }, { passive: true });
+
+      panel.addEventListener("touchend", (event) => {
+        if (mobileTouchStartX === null) {
+          return;
+        }
+
+        const diff = event.changedTouches[0].clientX - mobileTouchStartX;
+        mobileTouchStartX = null;
+
+        if (Math.abs(diff) < 45) {
+          return;
+        }
+
+        moveMobileTab(diff < 0 ? 1 : -1);
+      }, { passive: true });
+    }
+
+    function renderMobileView() {
+      document.getElementById("leftBracket").innerHTML = "";
+      document.getElementById("rightBracket").innerHTML = "";
+      document.getElementById("finalMatch").innerHTML = "";
+
+      const mount = document.getElementById("mobileView");
+      mount.innerHTML = "";
+      const activeTab = mobileTabs.find((tab) => tab.key === mobileActiveTab) || mobileTabs[0];
+      mobileActiveTab = activeTab.key;
+
+      renderMobileTabs(mount);
+
+      const panel = document.createElement("div");
+      panel.className = "mobile-panel";
+
+      if (activeTab.key === "FINAL") {
+        renderMobileFinal(panel);
+      } else {
+        renderMobileMatches(panel, activeTab);
+      }
+
+      bindMobileSwipe(panel);
+      mount.append(panel);
+      renderPossibilities();
+    }
+
     function possibleWinners(matchId) {
       const match = matchById.get(matchId);
       const selected = state.get(matchId);
@@ -762,6 +1072,12 @@
     }
 
     function render() {
+      if (mobileQuery.matches) {
+        renderMobileView();
+        return;
+      }
+
+      document.getElementById("mobileView").innerHTML = "";
       renderSide("left", "leftBracket");
       renderSide("right", "rightBracket");
       renderFinal();
@@ -770,6 +1086,7 @@
 
     document.getElementById("resetInitial").addEventListener("click", resetInitial);
     document.getElementById("clearAll").addEventListener("click", clearAll);
+    mobileQuery.addEventListener("change", render);
 
     render();
   </script>
