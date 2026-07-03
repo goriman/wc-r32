@@ -390,6 +390,10 @@
       display: none;
     }
 
+    .mobile-edit-action {
+      display: none;
+    }
+
     @media (max-width: 1750px) {
       .bracket-shell {
         min-width: 1696px;
@@ -430,6 +434,14 @@
         white-space: normal;
       }
 
+      .mobile-edit-action {
+        display: block;
+        grid-column: 1 / -1;
+        background: #172033;
+        border-color: #172033;
+        color: #ffffff;
+      }
+
       main {
         padding: 12px;
         overflow-x: hidden;
@@ -441,6 +453,138 @@
 
       .mobile-view {
         display: block;
+      }
+
+      .mobile-overview {
+        display: grid;
+        gap: 14px;
+      }
+
+      .overview-section {
+        display: grid;
+        gap: 7px;
+        border-left: 3px solid #d8e0eb;
+        padding-left: 9px;
+      }
+
+      .overview-section.is-left {
+        border-left-color: rgba(13, 124, 102, 0.5);
+      }
+
+      .overview-section.is-right {
+        border-left-color: rgba(69, 104, 143, 0.5);
+      }
+
+      .overview-heading {
+        margin: 0;
+        color: var(--ink);
+        font-size: 14px;
+        font-weight: 900;
+      }
+
+      .overview-match-list {
+        display: grid;
+        gap: 6px;
+      }
+
+      .overview-match {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+        align-items: center;
+        gap: 6px;
+        min-height: 38px;
+        border: 1px solid #d7e0ec;
+        border-radius: 7px;
+        background: #ffffff;
+        padding: 5px;
+      }
+
+      .overview-match.is-waiting {
+        border-style: dashed;
+        background: #f8fafc;
+      }
+
+      .overview-match.is-pending {
+        background: #f1f5f9;
+      }
+
+      .overview-team {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        min-width: 0;
+        min-height: 28px;
+        border-radius: 5px;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .overview-team.is-winner {
+        background: var(--win-bg);
+        color: #064e3b;
+        font-weight: 900;
+      }
+
+      .overview-team.is-loser {
+        color: var(--lose);
+        opacity: 0.55;
+        text-decoration: line-through;
+      }
+
+      .overview-team.is-empty {
+        border: 1px dashed #cbd5e1;
+        color: #8a95a6;
+        background: #edf2f7;
+      }
+
+      .overview-code {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .overview-slot {
+        color: inherit;
+        font-size: 10px;
+        font-weight: 800;
+        opacity: 0.8;
+      }
+
+      .overview-vs {
+        color: #8a95a6;
+        font-size: 11px;
+        font-weight: 900;
+      }
+
+      .overview-final {
+        display: grid;
+        gap: 8px;
+        border-left: 3px solid var(--line-strong);
+        padding-left: 9px;
+      }
+
+      .overview-champion {
+        border: 1px solid #fecdd3;
+        background: var(--accent-soft);
+        border-radius: 7px;
+        padding: 9px;
+        text-align: center;
+      }
+
+      .mobile-edit-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+
+      .mobile-back-button {
+        width: auto;
+        min-height: 44px;
+        padding: 9px 12px;
       }
 
       .mobile-tabs {
@@ -572,6 +716,7 @@
   <header>
     <h1>2026 W杯 決勝トーナメント</h1>
     <div class="toolbar" aria-label="操作">
+      <button type="button" class="mobile-edit-action" id="enterEdit">編集する</button>
       <button type="button" id="resetInitial">初期状態に戻す</button>
       <button type="button" id="clearAll">すべて未選択</button>
     </div>
@@ -621,6 +766,7 @@
     ];
 
     const mobileQuery = window.matchMedia("(max-width: 767px)");
+    let mobileMode = "overview";
     let mobileActiveTab = "L-r1";
     let mobileTouchStartX = null;
 
@@ -634,38 +780,38 @@
     };
 
     const teams = {
-      L1: { id: "L1", name: "ドイツ", slotNumber: 10 },
-      L2: { id: "L2", name: "パラグアイ", slotNumber: 9 },
-      L3: { id: "L3", name: "フランス", slotNumber: 1 },
-      L4: { id: "L4", name: "スウェーデン", slotNumber: 10 },
-      L5: { id: "L5", name: "南アフリカ", slotNumber: 1 },
-      L6: { id: "L6", name: "カナダ", slotNumber: 4 },
-      L7: { id: "L7", name: "オランダ", slotNumber: 7 },
-      L8: { id: "L8", name: "モロッコ", slotNumber: 8 },
-      L9: { id: "L9", name: "ポルトガル", slotNumber: 5 },
-      L10: { id: "L10", name: "クロアチア", slotNumber: 10 },
-      L11: { id: "L11", name: "スペイン", slotNumber: 2 },
-      L12: { id: "L12", name: "オーストリア", slotNumber: 9 },
-      L13: { id: "L13", name: "アメリカ", slotNumber: 6 },
-      L14: { id: "L14", name: "ボスニア", slotNumber: 8 },
-      L15: { id: "L15", name: "ベルギー", slotNumber: 9 },
-      L16: { id: "L16", name: "セネガル", slotNumber: 8 },
-      R1: { id: "R1", name: "ブラジル", slotNumber: 6 },
-      R2: { id: "R2", name: "日本", slotNumber: 4 },
-      R3: { id: "R3", name: "コートジボワール", slotNumber: 1 },
-      R4: { id: "R4", name: "ノルウェー", slotNumber: 3 },
-      R5: { id: "R5", name: "メキシコ", slotNumber: 7 },
-      R6: { id: "R6", name: "エクアドル", slotNumber: 10 },
-      R7: { id: "R7", name: "イングランド", slotNumber: 4 },
-      R8: { id: "R8", name: "DRコンゴ", slotNumber: 5 },
-      R9: { id: "R9", name: "アルゼンチン", slotNumber: 3 },
-      R10: { id: "R10", name: "カーボベルデ", slotNumber: 7 },
-      R11: { id: "R11", name: "オーストラリア", slotNumber: 7 },
-      R12: { id: "R12", name: "エジプト", slotNumber: 5 },
-      R13: { id: "R13", name: "スイス", slotNumber: 3 },
-      R14: { id: "R14", name: "アルジェリア", slotNumber: 6 },
-      R15: { id: "R15", name: "コロンビア", slotNumber: 9 },
-      R16: { id: "R16", name: "ガーナ", slotNumber: 6 }
+      L1: { id: "L1", name: "ドイツ", slotNumber: 10, code: "GER" },
+      L2: { id: "L2", name: "パラグアイ", slotNumber: 9, code: "PAR" },
+      L3: { id: "L3", name: "フランス", slotNumber: 1, code: "FRA" },
+      L4: { id: "L4", name: "スウェーデン", slotNumber: 10, code: "SWE" },
+      L5: { id: "L5", name: "南アフリカ", slotNumber: 1, code: "RSA" },
+      L6: { id: "L6", name: "カナダ", slotNumber: 4, code: "CAN" },
+      L7: { id: "L7", name: "オランダ", slotNumber: 7, code: "NED" },
+      L8: { id: "L8", name: "モロッコ", slotNumber: 8, code: "MAR" },
+      L9: { id: "L9", name: "ポルトガル", slotNumber: 5, code: "POR" },
+      L10: { id: "L10", name: "クロアチア", slotNumber: 10, code: "CRO" },
+      L11: { id: "L11", name: "スペイン", slotNumber: 2, code: "ESP" },
+      L12: { id: "L12", name: "オーストリア", slotNumber: 9, code: "AUT" },
+      L13: { id: "L13", name: "アメリカ", slotNumber: 6, code: "USA" },
+      L14: { id: "L14", name: "ボスニア", slotNumber: 8, code: "BIH" },
+      L15: { id: "L15", name: "ベルギー", slotNumber: 9, code: "BEL" },
+      L16: { id: "L16", name: "セネガル", slotNumber: 8, code: "SEN" },
+      R1: { id: "R1", name: "ブラジル", slotNumber: 6, code: "BRA" },
+      R2: { id: "R2", name: "日本", slotNumber: 4, code: "JPN" },
+      R3: { id: "R3", name: "コートジボワール", slotNumber: 1, code: "CIV" },
+      R4: { id: "R4", name: "ノルウェー", slotNumber: 3, code: "NOR" },
+      R5: { id: "R5", name: "メキシコ", slotNumber: 7, code: "MEX" },
+      R6: { id: "R6", name: "エクアドル", slotNumber: 10, code: "ECU" },
+      R7: { id: "R7", name: "イングランド", slotNumber: 4, code: "ENG" },
+      R8: { id: "R8", name: "DRコンゴ", slotNumber: 5, code: "COD" },
+      R9: { id: "R9", name: "アルゼンチン", slotNumber: 3, code: "ARG" },
+      R10: { id: "R10", name: "カーボベルデ", slotNumber: 7, code: "CPV" },
+      R11: { id: "R11", name: "オーストラリア", slotNumber: 7, code: "AUS" },
+      R12: { id: "R12", name: "エジプト", slotNumber: 5, code: "EGY" },
+      R13: { id: "R13", name: "スイス", slotNumber: 3, code: "SUI" },
+      R14: { id: "R14", name: "アルジェリア", slotNumber: 6, code: "ALG" },
+      R15: { id: "R15", name: "コロンビア", slotNumber: 9, code: "COL" },
+      R16: { id: "R16", name: "ガーナ", slotNumber: 6, code: "GHA" }
     };
 
     const matches = [
@@ -709,6 +855,10 @@
 
     function formatTeam(team) {
       return team ? `${team.name}（${team.slotNumber}）` : "未定";
+    }
+
+    function formatTeamCompact(team) {
+      return team ? team.code : "-";
     }
 
     function getSlots(match) {
@@ -912,6 +1062,129 @@
       document.getElementById("championName").textContent = championId ? formatTeam(teams[championId]) : "未定";
     }
 
+    function enterMobileEdit(tabKey = "L-r1") {
+      mobileMode = "edit";
+      mobileActiveTab = tabKey;
+      render();
+    }
+
+    function renderOverviewTeam(team, winnerId) {
+      const teamEl = document.createElement("span");
+      const isWinner = team && winnerId === team.id;
+      const isLoser = team && winnerId && winnerId !== team.id;
+      teamEl.className = [
+        "overview-team",
+        team ? "" : "is-empty",
+        isWinner ? "is-winner" : "",
+        isLoser ? "is-loser" : ""
+      ].filter(Boolean).join(" ");
+
+      const code = document.createElement("span");
+      code.className = "overview-code";
+      code.textContent = formatTeamCompact(team);
+
+      const slot = document.createElement("span");
+      slot.className = "overview-slot";
+      slot.textContent = team ? `(${team.slotNumber})` : "";
+
+      teamEl.append(code, slot);
+      return teamEl;
+    }
+
+    function renderOverviewMatch(match) {
+      const slots = getSlots(match);
+      const winnerId = state.get(match.id);
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = [
+        "overview-match",
+        matchStatus(match, slots, winnerId)
+      ].join(" ");
+      card.setAttribute("aria-label", `${match.id} を編集`);
+      card.addEventListener("click", () => {
+        const tabKey = match.id === "FINAL" ? "FINAL" : `${match.side === "left" ? "L" : "R"}-${match.round}`;
+        enterMobileEdit(tabKey);
+      });
+
+      const vs = document.createElement("span");
+      vs.className = "overview-vs";
+      vs.textContent = "vs";
+
+      card.append(renderOverviewTeam(slots[0], winnerId), vs, renderOverviewTeam(slots[1], winnerId));
+      return card;
+    }
+
+    function renderOverviewSection(mount, sideName, roundKey) {
+      const round = rounds.find((item) => item.key === roundKey);
+      const sideLabel = sideName === "left" ? "左" : "右";
+      const section = document.createElement("section");
+      section.className = `overview-section is-${sideName}`;
+
+      const heading = document.createElement("h2");
+      heading.className = "overview-heading";
+      heading.textContent = `${round.label}（${sideLabel}）`;
+
+      const list = document.createElement("div");
+      list.className = "overview-match-list";
+
+      matches
+        .filter((match) => match.side === sideName && match.round === roundKey)
+        .forEach((match) => list.append(renderOverviewMatch(match)));
+
+      section.append(heading, list);
+      mount.append(section);
+    }
+
+    function renderOverviewFinal(mount) {
+      const section = document.createElement("section");
+      section.className = "overview-final";
+
+      const heading = document.createElement("h2");
+      heading.className = "overview-heading";
+      heading.textContent = "決勝";
+
+      const champion = document.createElement("div");
+      champion.className = "overview-champion";
+
+      const label = document.createElement("span");
+      label.className = "champion-label";
+      label.textContent = "優勝";
+
+      const name = document.createElement("span");
+      name.className = "champion-name";
+      const championId = state.get("FINAL");
+      name.textContent = championId ? formatTeamCompact(teams[championId]) : "未定";
+
+      champion.append(label, name);
+      section.append(heading, renderOverviewMatch(matchById.get("FINAL")), champion);
+      mount.append(section);
+    }
+
+    function renderMobileOverview() {
+      document.getElementById("leftBracket").innerHTML = "";
+      document.getElementById("rightBracket").innerHTML = "";
+      document.getElementById("finalMatch").innerHTML = "";
+      document.querySelector(".possibilities").hidden = true;
+
+      const mount = document.getElementById("mobileView");
+      mount.innerHTML = "";
+
+      const overview = document.createElement("div");
+      overview.className = "mobile-overview";
+
+      renderOverviewSection(overview, "left", "r1");
+      renderOverviewSection(overview, "left", "r2");
+      renderOverviewSection(overview, "left", "r3");
+      renderOverviewSection(overview, "left", "r4");
+      renderOverviewFinal(overview);
+      renderOverviewSection(overview, "right", "r4");
+      renderOverviewSection(overview, "right", "r3");
+      renderOverviewSection(overview, "right", "r2");
+      renderOverviewSection(overview, "right", "r1");
+
+      mount.append(overview);
+    }
+
     function renderMobileTabs(mount) {
       const tabs = document.createElement("div");
       tabs.className = "mobile-tabs";
@@ -1007,12 +1280,27 @@
       document.getElementById("leftBracket").innerHTML = "";
       document.getElementById("rightBracket").innerHTML = "";
       document.getElementById("finalMatch").innerHTML = "";
+      document.querySelector(".possibilities").hidden = false;
 
       const mount = document.getElementById("mobileView");
       mount.innerHTML = "";
       const activeTab = mobileTabs.find((tab) => tab.key === mobileActiveTab) || mobileTabs[0];
       mobileActiveTab = activeTab.key;
 
+      const editHeader = document.createElement("div");
+      editHeader.className = "mobile-edit-header";
+
+      const backButton = document.createElement("button");
+      backButton.type = "button";
+      backButton.className = "mobile-back-button";
+      backButton.textContent = "← 全体図に戻る";
+      backButton.addEventListener("click", () => {
+        mobileMode = "overview";
+        render();
+      });
+
+      editHeader.append(backButton);
+      mount.append(editHeader);
       renderMobileTabs(mount);
 
       const panel = document.createElement("div");
@@ -1073,20 +1361,30 @@
 
     function render() {
       if (mobileQuery.matches) {
-        renderMobileView();
+        if (mobileMode === "overview") {
+          renderMobileOverview();
+        } else {
+          renderMobileView();
+        }
         return;
       }
 
       document.getElementById("mobileView").innerHTML = "";
+      document.querySelector(".possibilities").hidden = false;
       renderSide("left", "leftBracket");
       renderSide("right", "rightBracket");
       renderFinal();
       renderPossibilities();
     }
 
+    document.getElementById("enterEdit").addEventListener("click", () => enterMobileEdit("L-r1"));
     document.getElementById("resetInitial").addEventListener("click", resetInitial);
     document.getElementById("clearAll").addEventListener("click", clearAll);
-    mobileQuery.addEventListener("change", render);
+    mobileQuery.addEventListener("change", () => {
+      mobileMode = "overview";
+      mobileActiveTab = "L-r1";
+      render();
+    });
 
     render();
   </script>
