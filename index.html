@@ -1045,7 +1045,7 @@
     const zoomStage = document.getElementById("zoomStage");
 
     function isInteractiveTarget(target) {
-      return Boolean(target.closest("input, label, button, .zoom-controls"));
+      return Boolean(target.closest("input, button, .zoom-controls"));
     }
 
     function clamp(value, min, max) {
@@ -1057,18 +1057,18 @@
       const viewportRect = zoomViewport.getBoundingClientRect();
       const contentWidth = shell.offsetWidth * zoom.scale;
       const contentHeight = shell.offsetHeight * zoom.scale;
-      const margin = 80;
+      const margin = Math.min(180, Math.max(80, viewportRect.height * 0.35));
 
       if (contentWidth <= viewportRect.width) {
         zoom.x = (viewportRect.width - contentWidth) / 2;
       } else {
-        zoom.x = clamp(zoom.x, viewportRect.width - contentWidth + margin, margin);
+        zoom.x = clamp(zoom.x, viewportRect.width - contentWidth - margin, margin);
       }
 
       if (contentHeight <= viewportRect.height) {
         zoom.y = (viewportRect.height - contentHeight) / 2;
       } else {
-        zoom.y = clamp(zoom.y, viewportRect.height - contentHeight + margin, margin);
+        zoom.y = clamp(zoom.y, viewportRect.height - contentHeight - margin, margin);
       }
     }
 
